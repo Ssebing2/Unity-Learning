@@ -1,2 +1,9 @@
 # Unity-Learning
-My Unity learning journey.
+
+Unity 수업에서 진행한 실습과 과제를 기록하는 저장소입니다.
+
+## Day01
+
+- 몬스터 위험도 분석기
+- 플레이어와 몬스터의 거리 계산
+- 공격력과 거리 조건에 따른 위험도 출력
