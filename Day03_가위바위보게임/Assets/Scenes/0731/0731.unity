@@ -7290,7 +7290,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _player: {fileID: 830464649}
   _upperBody: {fileID: 1214984459}
-  _boomPivot: {fileID: 1118642799}
+  _boomPivot: {fileID: 0}
   _armPivot: {fileID: 5503475}
   _bucketPivot: {fileID: 1294199989}
   _speed: 5
