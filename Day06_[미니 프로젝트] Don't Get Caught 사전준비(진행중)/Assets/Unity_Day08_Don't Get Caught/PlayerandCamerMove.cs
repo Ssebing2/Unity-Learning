@@ -1,64 +1,97 @@
 using UnityEngine;
 
-public class PlayerandCamerMove : MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
-    [Header("플레이어 움직임")]
-    [SerializeField] private float _moveSpeed = 20.0f;
+    [Header("이동 / 회전")]
+    [SerializeField] private float _moveSpeed = 45.0f;
+    [SerializeField] private float _rotateSpeed = 120.0f;
+
+    [Header("점프 (리지드 바디 필요")]
+    [SerializeField] private float _jumpImpulse = 6.0f;
+    [SerializeField] private float _groundCheckDistance = 25f;
+    [SerializeField] private LayerMask _groundMask = ~0;
+
+    [Header("옵션")]
+    [SerializeField] private bool _resetRotationOnRMB = true;
+
+    private Rigidbody _rb;
+
 
     private Vector3 _moveDirection;
     private bool _isMoving;
 
+    void Start()
+    {
+        TryGetComponent(out _rb);
+
+        if (_rb == null)
+        {
+            CPrint.Warn("점프 → 리지드 바디가 필요합니다.");
+
+            enabled = false;
+            return;
+        }
+    }
+
     private void Update()
     {
-        CheckDirectionInput();
-        PlayerMoving();
+        InputRotateMove();
+        InputIdentity();
+        InputJump();
     }
 
-    private void CheckDirectionInput()
+    private void InputRotateMove()
     {
-        // 키를 처음 누른 순간에만 이동 방향을 결정한다.
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            SetDirection(transform.forward);
-        }
-        else if (Input.GetKeyDown(KeyCode.S))
-        {
-            SetDirection(-transform.forward);
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            SetDirection(-transform.right);
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            SetDirection(transform.right);
-        }
+        float rotate = Input.GetAxis("Horizontal");
+        float move = Input.GetAxis("Vertical");
 
-        // 방향키 중 하나라도 누르고 있으면 이동
-        _isMoving =
-            Input.GetKey(KeyCode.W) ||
-            Input.GetKey(KeyCode.S) ||
-            Input.GetKey(KeyCode.A) ||
-            Input.GetKey(KeyCode.D);
+        rotate *= _rotateSpeed * Time.deltaTime;
+        move *= _moveSpeed * Time.deltaTime;
+
+        transform.Rotate(Vector3.up * rotate);
+        transform.Translate(Vector3.forward*move, Space.Self);
+
+
     }
 
-    private void SetDirection(Vector3 direction)
+    private void InputIdentity()
     {
-        direction.y = 0f;
-        _moveDirection = direction.normalized;
-
-        // Player 전체 회전
-        // 자식인 몸과 카메라도 함께 돌아간다.
-        transform.forward = _moveDirection;
-    }
-
-    private void PlayerMoving()
-    {
-        if (!_isMoving)
+        if (!_resetRotationOnRMB)
         {
             return;
         }
 
-        transform.position += _moveDirection * _moveSpeed * Time.deltaTime;
+        if (Input.GetMouseButton(1))
+        {
+            transform.localRotation = Quaternion.identity;
+        }
     }
+
+    private void InputJump()
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        if (!Input.GetKeyDown(KeyCode.Space))
+        {
+            return;
+        }
+
+        if (!isGrounded())
+        {
+            CPrint.Once("점프 로그", "점프 : 바닥이 아닐 때는 점프불가");
+            return;
+        }
+
+        _rb.AddForce(Vector3.up * _jumpImpulse, ForceMode.Impulse);
+    }
+
+    private bool isGrounded()
+    {
+        Vector3 origin = transform.position + Vector3.up * 0.1f;
+        return Physics.Raycast(origin, Vector3.down, _groundCheckDistance, _groundMask);
+    }
+
 }
